@@ -239,6 +239,8 @@ function animate() {
   } else if (down) {
     rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
+  } else {
+    rtan.y = rtan.y;
   }
 }
 
