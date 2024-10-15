@@ -18,7 +18,9 @@ let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
 let up = false;
 let down = false;
-let speed = 3; // 이동 속도
+let speed = 3;
+const originalSpeed = 3; // 이동 속도
+let stop = false;
 
 /** 오디오 객체 생성 및 설정 */
 /**TODO: 이동속도 사운드 넣기 */
@@ -240,7 +242,13 @@ function animate() {
     rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   } else {
-    rtan.y = rtan.y;
+    stop = true;
+  }
+
+  if (stop) {
+    speed = 0;
+  } else {
+    speed = originalSpeed;
   }
 }
 
