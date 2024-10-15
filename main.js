@@ -18,7 +18,7 @@ let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
 let up = false;
 let down = false;
-let speed = 3;
+let speed = 10;
 const originalSpeed = 3; // 이동 속도
 let stop = false;
 
@@ -112,16 +112,17 @@ class Bullet {
 
 /** 적 클래스 정의 */
 const ENEMY_WIDTH = 70;
-const ENEMY_HEIGHT = 70;
 const ENEMY_FREQUENCY = 90;
 const ENEMY_SPEED = 2;
 class Enemy {
   constructor() {
+    let ENEMY_HEIGHT = Math.random() * (100 - 30) + 30;
+    let ENEMY_Y = Math.random() * (canvas.height - 100 - ENEMY_HEIGHT) + 100;
     this.x = canvas.width;
-    this.y = Math.random() * (canvas.height - 100 - this.height) + 100;
+    this.y = ENEMY_Y;
     this.width = 70;
-    this.height = Math.random() * (100 - 30) + 30;
-    this.speed = 100 / this.height;
+    this.height = ENEMY_HEIGHT;
+    this.speed = 100 / ENEMY_HEIGHT;
   }
 
   draw() {
@@ -234,40 +235,26 @@ function animate() {
 
   /** 플레이어 그리기 */
   rtan.draw();
-
-  if (up) {
-    rtan.y -= speed; // w 누르고 있으면 rtan의 y값 감소
-    if (rtan.y < 20) rtan.y = 20;
-  } else if (down) {
-    rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
-    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
-  } else {
-    stop = true;
-  }
-
-  if (stop) {
-    speed = 0;
-  } else {
-    speed = originalSpeed;
-  }
 }
 
 /** 키보드 이벤트 처리(위로 이동)) */
-document.addEventListener("keydown", function (e) {
-  if (e.code === "KeyW" && !up) {
-    up = true;
+document.addEventListener("keypress", function (e) {
+  if (e.code === "KeyW") {
+    rtan.y -= speed; // w 누르고 있으면 rtan의 y값 감소
+    if (rtan.y < 20) rtan.y = 20;
   }
 });
 
 /** 키보드 이벤트 처리(아래로 이동) */
-document.addEventListener("keydown", function (e) {
-  if (e.code === "KeyS" && !down) {
-    down = true;
+document.addEventListener("keypress", function (e) {
+  if (e.code === "KeyS") {
+    rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
+    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
 });
 
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
-document.addEventListener("keydown", function (e) {
+document.addEventListener("keypress", function (e) {
   if (e.code === "Space") {
     const bullet = new Bullet(rtan.x + rtan.width / 2 - 5, rtan.y);
     bulletArray.push(bullet);
