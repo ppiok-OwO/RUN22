@@ -136,12 +136,12 @@ class Enemy {
 /** 키보드 입력 저장하기 */
 let keyPresses = {};
 
-document.addEventListener('keydown', keyDownListener, false);
+window.addEventListener('keydown', keyDownListener, false);
 function keyDownListener(event) {
   keyPresses[event.key] = true;
 }
 
-document.addEventListener('keyup', keyUpListener, false);
+window.addEventListener('keyup', keyUpListener, false);
 function keyUpListener(event) {
   keyPresses[event.key] = false;
 }
@@ -274,7 +274,7 @@ function animate() {
 // });
 
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
-document.addEventListener("keypress", function (e) {
+window.addEventListener("keypress", function (e) {
   if (e.code === "Space") {
     const bullet = new Bullet(rtan.x + rtan.width / 2 - 5, rtan.y);
     bulletArray.push(bullet);
