@@ -17,9 +17,7 @@ let timer = 0; // 장애물 생성 시간
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
-let up = false;
-let down = false;
-let speed = 10;
+let speed = 3;
 const originalSpeed = 3; // 이동 속도
 let stop = false;
 
@@ -97,8 +95,8 @@ class Bullet {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = 30;
-    this.height = 30;
+    this.width = 50;
+    this.height = 50;
     this.speed = 7;
   }
 
@@ -133,6 +131,19 @@ class Enemy {
   update() {
     this.x -= this.speed;
   }
+}
+
+/** 키보드 입력 저장하기 */
+let keyPresses = {};
+
+document.addEventListener('keydown', keyDownListener, false);
+function keyDownListener(event) {
+  keyPresses[event.key] = true;
+}
+
+document.addEventListener('keyup', keyUpListener, false);
+function keyUpListener(event) {
+  keyPresses[event.key] = false;
 }
 
 /** 3-1 배경 화면 그리기 */
@@ -205,12 +216,13 @@ function animate() {
     // 충돌 검사
     if (collision(rtan, enemy)) {
       rtan.hp -= 10;
-      hpText.innerHTML = hp;
+      hpText.innerHTML = rtan.hp;
       if (hp <= 0) {
         gameOver = true;
-      }
-      bgmSound.pause();
-      defeatSound.play();
+        drawGameOverScreen();
+        bgmSound.pause();
+        defeatSound.play();
+      }      
     }
   });
 
@@ -234,25 +246,32 @@ function animate() {
     });
   });
 
+  if (keyPresses.w) {
+    rtan.y -= speed;
+    if (rtan.y < 20) rtan.y = 20;
+  } else if (keyPresses.s) {
+    rtan.y += speed;
+    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
+  }
   /** 플레이어 그리기 */
   rtan.draw();
 }
 
-/** 키보드 이벤트 처리(위로 이동)) */
-document.addEventListener("keypress", function (e) {
-  if (e.code === "KeyW") {
-    rtan.y -= speed; // w 누르고 있으면 rtan의 y값 감소
-    if (rtan.y < 20) rtan.y = 20;
-  }
-});
+// /** 키보드 이벤트 처리(위로 이동)) */
+// document.addEventListener("keypress", function (e) {
+//   if (e.code === "KeyW") {
+//     rtan.y -= speed; // w 누르고 있으면 rtan의 y값 감소
+//     if (rtan.y < 20) rtan.y = 20;
+//   }
+// });
 
-/** 키보드 이벤트 처리(아래로 이동) */
-document.addEventListener("keypress", function (e) {
-  if (e.code === "KeyS") {
-    rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
-    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
-  }
-});
+// /** 키보드 이벤트 처리(아래로 이동) */
+// document.addEventListener("keypress", function (e) {
+//   if (e.code === "KeyS") {
+//     rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
+//     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
+//   }
+// });
 
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
 document.addEventListener("keypress", function (e) {
