@@ -258,6 +258,7 @@ document.addEventListener("keydown", function (e) {
   if (e.code === "Space") {
     const bullet = new Bullet(rtan.x + rtan.width / 2 - 5, rtan.y);
     bulletArray.push(bullet);
+    bulletSound.currentTime=0;
     bulletSound.play();
   }
 });
