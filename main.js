@@ -91,12 +91,13 @@ const rtan = {
 };
 
 /** 총알 클래스 정의 */
+
 class Bullet {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = 50;
-    this.height = 50;
+    this.width = 30;
+    this.height = 30;
     this.speed = 7;
   }
 
@@ -113,15 +114,20 @@ class Bullet {
 const ENEMY_WIDTH = 70;
 const ENEMY_FREQUENCY = 90;
 const ENEMY_SPEED = 2;
+
 class Enemy {
   constructor() {
+    let IsCrashed = false;
     let ENEMY_HEIGHT = Math.random() * (100 - 30) + 30;
-    let ENEMY_Y = Math.random() * (canvas.height - 100 - ENEMY_HEIGHT) + 100;
+    let ENEMY_Y = Math.random() * (canvas.height - 50 - ENEMY_HEIGHT) + 30;
+
     this.x = canvas.width;
     this.y = ENEMY_Y;
     this.width = 70;
     this.height = ENEMY_HEIGHT;
     this.speed = 100 / ENEMY_HEIGHT;
+    this.IsCrashed = false;
+    this.enemyScore = ENEMY_HEIGHT / 2;
   }
 
   draw() {
@@ -136,12 +142,12 @@ class Enemy {
 /** 키보드 입력 저장하기 */
 let keyPresses = {};
 
-window.addEventListener('keydown', keyDownListener, false);
+window.addEventListener("keydown", keyDownListener, false);
 function keyDownListener(event) {
   keyPresses[event.key] = true;
 }
 
-window.addEventListener('keyup', keyUpListener, false);
+window.addEventListener("keyup", keyUpListener, false);
 function keyUpListener(event) {
   keyPresses[event.key] = false;
 }
@@ -215,14 +221,18 @@ function animate() {
     }
     // 충돌 검사
     if (collision(rtan, enemy)) {
-      rtan.hp -= 10;
-      hpText.innerHTML = rtan.hp;
-      if (hp <= 0) {
-        gameOver = true;
-        drawGameOverScreen();
-        bgmSound.pause();
-        defeatSound.play();
-      }      
+      if (!enemy.IsCrashed) {
+        rtan.hp -= 10;
+        enemy.IsCrashed = true;
+        hpText.innerHTML = rtan.hp;
+        if (rtan.hp <= 0) {
+          timer = 0;
+          gameOver = true;
+          drawGameOverScreen();
+          bgmSound.pause();
+          defeatSound.play();
+        }
+      }
     }
   });
 
@@ -237,7 +247,7 @@ function animate() {
       if (collision(bullet, enemy)) {
         enemyArray.splice(enemyIndex, 1);
         bulletArray.splice(bulletIndex, 1);
-        score += 10;
+        score += Math.floor(enemy.enemyScore);
         scoreText.innerHTML = "현재점수: " + score;
         scoreSound.pause();
         scoreSound.currentTime = 0;
@@ -246,11 +256,41 @@ function animate() {
     });
   });
 
-  if (keyPresses.w) {
+  // 상하좌우로 이동하기
+  if (keyPresses.w || keyPresses.W) {
     rtan.y -= speed;
     if (rtan.y < 20) rtan.y = 20;
-  } else if (keyPresses.s) {
+  } else if (keyPresses.s || keyPresses.S) {
     rtan.y += speed;
+    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
+  } else if (keyPresses.a || keyPresses.A) {
+    rtan.x -= speed;
+    if (rtan.x < -rtan.width) rtan.x = 0;
+  } else if (keyPresses.d || keyPresses.D) {
+    rtan.x += speed;
+    if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
+  }
+
+  // 대각선으로 이동하기
+  if ((keyPresses.w || keyPresses.W) && (keyPresses.a || keyPresses.A)) {
+    rtan.x -= speed;
+    rtan.y -= speed;
+    if (rtan.x < -rtan.width) rtan.x = 0;
+    if (rtan.y < 20) rtan.y = 20;
+  } else if ((keyPresses.w || keyPresses.W) && (keyPresses.d || keyPresses.D)) {
+    rtan.x += speed;
+    rtan.y -= speed;
+    if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
+    if (rtan.y < 20) rtan.y = 20;
+  } else if ((keyPresses.s || keyPresses.S) && (keyPresses.a || keyPresses.A)) {
+    rtan.x -= speed;
+    rtan.y += speed;
+    if (rtan.x < -rtan.width) rtan.x = 0;
+    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
+  } else if ((keyPresses.s || keyPresses.S) && (keyPresses.d || keyPresses.D)) {
+    rtan.x += speed;
+    rtan.y += speed;
+    if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
   /** 플레이어 그리기 */
@@ -274,9 +314,10 @@ function animate() {
 // });
 
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
+/** 총알 발사 딜레이 주기 */
 window.addEventListener("keypress", function (e) {
   if (e.code === "Space") {
-    const bullet = new Bullet(rtan.x + rtan.width / 2 - 5, rtan.y);
+    const bullet = new Bullet(rtan.x + rtan.width / 2, rtan.y + rtan.height/2);
     bulletArray.push(bullet);
     bulletSound.currentTime = 0;
     bulletSound.play();
