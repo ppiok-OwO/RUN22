@@ -108,8 +108,8 @@ class Bullet {
 }
 
 /** 적 클래스 정의 */
-const ENEMY_WIDTH = 50;
-const ENEMY_HEIGHT = 50;
+const ENEMY_WIDTH = 70;
+const ENEMY_HEIGHT = 70;
 const ENEMY_FREQUENCY = 90;
 const ENEMY_SPEED = 2;
 class Enemy {
@@ -258,6 +258,7 @@ document.addEventListener("keydown", function (e) {
   if (e.code === "Space") {
     const bullet = new Bullet(rtan.x + rtan.width / 2 - 5, rtan.y);
     bulletArray.push(bullet);
+    bulletSound.currentTime=0;
     bulletSound.play();
   }
 });
