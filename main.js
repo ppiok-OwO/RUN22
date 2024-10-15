@@ -247,7 +247,7 @@ document.addEventListener("keydown", function (e) {
     jumpSound.play(); // 점프 소리 재생
   }
 });
-document.addEventListener("keyup", function(e) {
+document.addEventListener("keyup", function (e) {
   if (e.code === "KeyW" && jump) {
     jump = false;
   }
@@ -258,7 +258,7 @@ document.addEventListener("keydown", function (e) {
   if (e.code === "Space") {
     const bullet = new Bullet(rtan.x + rtan.width / 2 - 5, rtan.y);
     bulletArray.push(bullet);
-    bulletSound.currentTime=0;
+    bulletSound.currentTime = 0;
     bulletSound.play();
   }
 });
