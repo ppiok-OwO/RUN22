@@ -93,9 +93,9 @@ class Bullet {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = 30;
-    this.height = 30;
-    this.speed = 5;
+    this.width = 50;
+    this.height = 50;
+    this.speed = 7;
   }
 
   draw() {
@@ -115,7 +115,7 @@ const ENEMY_SPEED = 2;
 class Enemy {
   constructor() {
     this.x = canvas.width;
-    this.y = Math.random() * (canvas.height - 30 - ENEMY_HEIGHT) + 30;
+    this.y = Math.random() * (canvas.height - 100 - ENEMY_HEIGHT) + 100;
     this.width = ENEMY_WIDTH;
     this.height = ENEMY_HEIGHT;
     this.speed = ENEMY_SPEED;
