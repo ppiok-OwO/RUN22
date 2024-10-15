@@ -16,12 +16,10 @@ let timer = 0; // 장애물 생성 시간
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
-let jump = false;
-let jumpSpeed = 3; // 점프 속도
+let Speed = 3; // 이동 속도
 
 /** 오디오 객체 생성 및 설정 */
-const jumpSound = new Audio(); // 점프 소리
-jumpSound.src = "./sounds/jump.mp3";
+/**TODO: 이동속도 사운드 넣기 */
 const bgmSound = new Audio(); // 배경 음악
 bgmSound.src = "./sounds/bgm.mp3";
 const scoreSound = new Audio(); // 점수 획득 소리
@@ -70,6 +68,7 @@ const RTAN_Y = 400;
 const rtan = {
   x: RTAN_X,
   y: RTAN_Y,
+  hp: 100,
   width: RTAN_WIDTH,
   height: RTAN_HEIGHT,
   draw() {
@@ -93,8 +92,8 @@ class Bullet {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = 50;
-    this.height = 50;
+    this.width = 30;
+    this.height = 30;
     this.speed = 7;
   }
 
@@ -115,10 +114,10 @@ const ENEMY_SPEED = 2;
 class Enemy {
   constructor() {
     this.x = canvas.width;
-    this.y = Math.random() * (canvas.height - 100 - ENEMY_HEIGHT) + 100;
-    this.width = ENEMY_WIDTH;
-    this.height = ENEMY_HEIGHT;
-    this.speed = ENEMY_SPEED;
+    this.y = Math.random() * (canvas.height - 100 - this.height) + 100;
+    this.width = 70;
+    this.height = Math.random() * (100 - 30) + 30;
+    this.speed = 100 / this.height;
   }
 
   draw() {
@@ -200,7 +199,10 @@ function animate() {
     // 충돌 검사
     if (collision(rtan, enemy)) {
       timer = 0;
-      gameOver = true;
+      rtan.hp -= 10;
+      if (hp <= 0) {
+        gameOver = true;
+      }
       bgmSound.pause();
       defeatSound.play();
     }
@@ -228,28 +230,20 @@ function animate() {
 
   /** 플레이어 그리기 */
   rtan.draw();
-
-  if (jump) {
-    rtan.y -= 3; // w 누르고 있으면 rtan의 y값 감소
-    if (rtan.y < 20) rtan.y = 20; // rtan이 canvas 상단을 넘지 않도록 조정
-  } else {
-    if (rtan.y < RTAN_Y) {
-      rtan.y += 3; // w 떼면 rtan의 y값 증가
-      if (rtan.y > RTAN_Y) rtan.y = RTAN_Y; // rtan이 초기 위치 아래로 내려가지 않도록 조정
-    }
-  }
 }
 
 /** 키보드 이벤트 처리 (점프(W)) */
 document.addEventListener("keydown", function (e) {
-  if (e.code === "KeyW" && !jump) {
-    jump = true; // w를 누르고 있을 때 점프 상태 유지
-    jumpSound.play(); // 점프 소리 재생
+  if (e.code === "KeyW") {
+    rtan.y -= 3; // w 누르고 있으면 rtan의 y값 감소
+    if (rtan.y < 20) rtan.y = 20;
   }
 });
-document.addEventListener("keyup", function (e) {
-  if (e.code === "KeyW" && jump) {
-    jump = false;
+
+document.addEventListener("keydown", function (e) {
+  if (e.code === "KeyS") {
+    rtan.y += 3; // w 누르고 있으면 rtan의 y값 감소
+    if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
 });
 
