@@ -30,4 +30,10 @@ body {
     margin-top: 20px;
     font-weight: bold;
   }
-  
+
+  #hp {
+    font-size: 40px;
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+  }  

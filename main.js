@@ -9,6 +9,7 @@ let gameStarted = false; // 게임 시작 여부
 const BG_MOVING_SPEED = 3; // 배경 이동 속도
 let bgX = 0; // 배경 X 좌표
 let scoreText = document.getElementById("score"); // 점수 표시 요소
+let hpText = document.getElementById("hp");
 let score = 0; // 현재 점수
 
 /** 게임 변수 */
@@ -203,8 +204,8 @@ function animate() {
     }
     // 충돌 검사
     if (collision(rtan, enemy)) {
-      timer = 0;
       rtan.hp -= 10;
+      hpText.innerHTML = hp;
       if (hp <= 0) {
         gameOver = true;
       }
