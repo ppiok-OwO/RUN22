@@ -16,7 +16,7 @@ let timer = 0; // 장애물 생성 시간
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
-let Speed = 3; // 이동 속도
+let speed = 3; // 이동 속도
 
 /** 오디오 객체 생성 및 설정 */
 /**TODO: 이동속도 사운드 넣기 */
@@ -235,14 +235,14 @@ function animate() {
 /** 키보드 이벤트 처리 (점프(W)) */
 document.addEventListener("keydown", function (e) {
   if (e.code === "KeyW") {
-    rtan.y -= 3; // w 누르고 있으면 rtan의 y값 감소
+    rtan.y -= speed; // w 누르고 있으면 rtan의 y값 감소
     if (rtan.y < 20) rtan.y = 20;
   }
 });
 
 document.addEventListener("keydown", function (e) {
   if (e.code === "KeyS") {
-    rtan.y += 3; // w 누르고 있으면 rtan의 y값 감소
+    rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
 });
