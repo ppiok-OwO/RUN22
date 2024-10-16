@@ -72,6 +72,7 @@ const rtan = {
   hp: 100,
   width: RTAN_WIDTH,
   height: RTAN_HEIGHT,
+  Israge: false,
   draw() {
     // 달리는 애니메이션 구현
     if (gameOver) {
@@ -118,7 +119,7 @@ const GAGE_bar = {
   x: 20,
   y: 60,
   height: 20,
-  Israge: false,
+  // Israge: false,
   draw() {
     const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
     my_gradient.addColorStop(0, "#FF8C00");
@@ -129,19 +130,7 @@ const GAGE_bar = {
     ctx.lineWidth = 3;
     ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
     ctx.fillRect(this.x, this.y, RAGE_GAGE, this.height);
-  },
-  // rage_mode(Israge) {
-  //   const bullet2 = new Bullet2();
-  //   const bullet3 = new Bullet3();
-  //   bullet2.draw();
-  //   bullet2.update();
-  //   bullet3.draw();
-  //   bullet3.update();
-  //   bulletArray.push(bullet2);
-  //   bulletArray.push(bullet3);
-  //   bulletSound.currentTime = 0;
-  //   bulletSound.play();
-  // }
+  }
 };
 
 /** 총알 클래스 정의 */
@@ -153,15 +142,11 @@ class Bullet {
     this.width = 30;
     this.height = 30;
     this.speed = 4;
-    // this.dirX = (click_x - this.x) / 70;
-    // this.dirY = (click_y - this.y) / 70;
   }
   draw() {
     ctx.drawImage(bulletImage, this.x, this.y, this.width, this.height);
   }
   update() {
-    // this.x += this.dirX * this.speed;
-    // this.y += this.dirY * this.speed;
     this.x += this.speed;
   }
 }
@@ -173,15 +158,11 @@ class Bullet2 {
     this.width = 30;
     this.height = 30;
     this.speed = 4;
-    // this.dirX = (click_x - this.x) / 70;
-    // this.dirY = (click_y - this.y) / 70;
   }
   draw() {
     ctx.drawImage(bulletImage, this.x, this.y, this.width, this.height);
   }
   update() {
-    // this.x += this.dirX * this.speed;
-    // this.y += this.dirY * this.speed;
     this.x += this.speed;
     this.y += this.speed / 2;
   }
@@ -194,15 +175,11 @@ class Bullet3 {
     this.width = 30;
     this.height = 30;
     this.speed = 4;
-    // this.dirX = (click_x - this.x) / 70;
-    // this.dirY = (click_y - this.y) / 70;
   }
   draw() {
     ctx.drawImage(bulletImage, this.x, this.y, this.width, this.height);
   }
   update() {
-    // this.x += this.dirX * this.speed;
-    // this.y += this.dirY * this.speed;
     this.x += this.speed;
     this.y -= this.speed / 2;
   }
@@ -350,26 +327,26 @@ function animate() {
         scoreSound.currentTime = 0;
         scoreSound.play();
 
-        RAGE_GAGE += Math.floor(enemy.enemyScore);
-
-        if (RAGE_GAGE >= 100 * GAGE_BAR_WIDTH_COEFF) {
-          // 게이지가 200보다 클 수 없게
-          let rage_timer = 0;
-          RAGE_GAGE = 100 * GAGE_BAR_WIDTH_COEFF;
-          rage_timer++;
-
-          // 레이지 모드 발동
-          // GAGE_bar.Israge = true;
-          // GAGE_bar.rage_mode();
-
-          // if (rage_timer % 2000 === 0) {
-          //   RAGE_GAGE = 0;
-          //   GAGE_bar.Israge = false;
-          // }
+        if (!rtan.Israge) {
+          RAGE_GAGE += Math.floor(enemy.enemyScore) / 3;
         }
       }
     });
   });
+
+  // 폭주 모드에 진입해도 괜찮은지 검사
+  if (RAGE_GAGE >= 100 * GAGE_BAR_WIDTH_COEFF && !rtan.Israge) {
+    rtan.Israge = true;
+  }
+
+  // 폭주 모드에 진입하면 게이지가 10씩 깎인다. 0이하가 되면 폭주가 끝난다.
+  if (rtan.Israge) {
+    RAGE_GAGE -= 0.7;
+    if (RAGE_GAGE <= 0) {
+      RAGE_GAGE = 0;
+      rtan.Israge = false;
+    }
+  }
 
   // 상하좌우로 이동하기
   if (keyPresses.w || keyPresses.W) {
@@ -435,9 +412,27 @@ function animate() {
 window.addEventListener("keypress", function (e) {
   if (e.code === "Space") {
     const bullet = new Bullet();
-    bulletArray.push(bullet);
-    bulletSound.currentTime = 0;
-    bulletSound.play();
+
+    if (rtan.Israge) {
+      bulletArray.push(bullet);
+      bulletSound.currentTime = 0;
+      bulletSound.play();
+
+      const bullet2 = new Bullet2();
+      const bullet3 = new Bullet3();
+      bullet2.draw();
+      bullet2.update();
+      bullet3.draw();
+      bullet3.update();
+      bulletArray.push(bullet2);
+      bulletArray.push(bullet3);
+      bulletSound.currentTime = 0;
+      bulletSound.play();
+    } else {
+      bulletArray.push(bullet);
+      bulletSound.currentTime = 0;
+      bulletSound.play();
+    }
   }
 });
 
