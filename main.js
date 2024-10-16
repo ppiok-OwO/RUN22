@@ -347,6 +347,8 @@ function animate() {
 
   // 폭주 모드에 진입해도 괜찮은지 검사
   if (RAGE_GAGE >= 100 * GAGE_BAR_WIDTH_COEFF && !rtan.Israge) {
+    // 폭주 게이지가 최대치를 넘지 않게 조정
+    RAGE_GAGE = 100 * GAGE_BAR_WIDTH_COEFF;
     rtan.Israge = true;
   }
 
@@ -498,6 +500,7 @@ function restartGame() {
   timer = 0;
   score = 0;
   scoreText.innerHTML = "현재점수: " + score;
+  hpText.innerHTML = "HP: " + maxHp;
   rtan.x = 10;
   rtan.y = 400;
   animate();
