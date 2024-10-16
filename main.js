@@ -17,6 +17,7 @@ let timer = 0; // 오브젝트 생성 시간
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
+const maxHp = 100;
 
 /** 오디오 객체 생성 및 설정 */
 /**TODO: 이동 사운드 넣기 */
@@ -91,11 +92,12 @@ const rtan = {
 
 /** HP바 정의 */
 const HP_BAR_WIDTH_COEFF = 2;
-let HP_BAR_WIDTH = 100 * HP_BAR_WIDTH_COEFF;
 
 const HP_bar = {
   x: 20,
   y: 20,
+  max_width: maxHp * HP_BAR_WIDTH_COEFF,
+  width: 100 * HP_BAR_WIDTH_COEFF,
   height: 30,
   draw() {
     const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
@@ -105,8 +107,8 @@ const HP_bar = {
     ctx.fillStyle = my_gradient;
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
-    ctx.strokeRect(this.x, this.y, 100 * HP_BAR_WIDTH_COEFF, this.height);
-    ctx.fillRect(this.x, this.y, HP_BAR_WIDTH, this.height);
+    ctx.strokeRect(this.x, this.y, this.max_width, this.height);
+    ctx.fillRect(this.x, this.y, this.width, this.height);
   },
 };
 
@@ -130,7 +132,7 @@ const GAGE_bar = {
     ctx.lineWidth = 3;
     ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
     ctx.fillRect(this.x, this.y, RAGE_GAGE, this.height);
-  }
+  },
 };
 
 /** 총알 클래스 정의 */
@@ -296,6 +298,7 @@ function animate() {
     if (collision(rtan, enemy)) {
       if (!enemy.IsCrashed) {
         rtan.hp -= 10;
+        HP_bar.width -= 10 * HP_BAR_WIDTH_COEFF;
         enemy.IsCrashed = true;
         hpText.innerHTML = "HP : " + rtan.hp;
         if (rtan.hp <= 0) {
@@ -305,7 +308,6 @@ function animate() {
           bgmSound.pause();
           defeatSound.play();
         }
-        HP_BAR_WIDTH -= 10 * HP_BAR_WIDTH_COEFF;
       }
     }
   });
@@ -319,14 +321,16 @@ function animate() {
     // 발사체와 적 충돌 검사
     enemyArray.forEach((enemy, enemyIndex) => {
       if (collision(bullet, enemy)) {
+        // 충돌한 총알과 적 오브젝트 없애기
         enemyArray.splice(enemyIndex, 1);
         bulletArray.splice(bulletIndex, 1);
+        // 점수 증가 및 표시
         score += Math.floor(enemy.enemyScore);
         scoreText.innerHTML = "현재점수: " + score;
         scoreSound.pause();
         scoreSound.currentTime = 0;
         scoreSound.play();
-
+        // 폭주 상태가 아니라면 게이지 증가
         if (!rtan.Israge) {
           RAGE_GAGE += Math.floor(enemy.enemyScore) / 3;
         }
@@ -339,7 +343,7 @@ function animate() {
     rtan.Israge = true;
   }
 
-  // 폭주 모드에 진입하면 게이지가 10씩 깎인다. 0이하가 되면 폭주가 끝난다.
+  // 폭주 모드에 진입하면 프레임당 게이지가 10씩 깎인다. 0이하가 되면 폭주가 끝난다.
   if (rtan.Israge) {
     RAGE_GAGE -= 0.7;
     if (RAGE_GAGE <= 0) {
@@ -385,7 +389,7 @@ function animate() {
     if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
-  /** 플레이어 그리기 */
+  /** 플레이어, HP바, 게이지바 그리기 */
   rtan.draw();
   HP_bar.draw();
   GAGE_bar.draw();
@@ -410,7 +414,7 @@ function animate() {
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
 /** TODO: 총알 발사 딜레이 주기 */
 window.addEventListener("keypress", function (e) {
-  if (e.code === "Space") {
+  if (gameStarted && e.code === "Space") {
     const bullet = new Bullet();
 
     if (rtan.Israge) {
@@ -476,7 +480,8 @@ function restartGame() {
   gameOver = false;
   bulletArray = [];
   enemyArray = [];
-  hp = 100;
+  rtan.hp = maxHp;
+  HP_bar.width = 100 * HP_BAR_WIDTH_COEFF;
   RAGE_GAGE = 0;
   timer = 0;
   score = 0;
