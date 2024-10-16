@@ -104,7 +104,7 @@ const HP_bar = {
     ctx.fillStyle = my_gradient;
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
-    ctx.strokeRect(this.x, this.y, HP_BAR_WIDTH, this.height);
+    ctx.strokeRect(this.x, this.y, 100 * HP_BAR_WIDTH_COEFF, this.height);
     ctx.fillRect(this.x, this.y, HP_BAR_WIDTH, this.height);
   },
 };
