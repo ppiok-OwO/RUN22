@@ -113,12 +113,12 @@ const HP_bar = {
 const GAGE_BAR_WIDTH_COEFF = 2;
 let GAGE_BAR_WIDTH = 100 * GAGE_BAR_WIDTH_COEFF;
 let RAGE_GAGE = 0;
-let Israge = false;
 
 const GAGE_bar = {
   x: 20,
   y: 60,
   height: 20,
+  Israge: false,
   draw() {
     const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
     my_gradient.addColorStop(0, "#FF8C00");
@@ -130,22 +130,18 @@ const GAGE_bar = {
     ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
     ctx.fillRect(this.x, this.y, RAGE_GAGE, this.height);
   },
-  rage_mode(Israge) {
-    const bullet2 = new Bullet2();
-    const bullet3 = new Bullet3();
-    bullet2.draw();
-    bullet2.update();
-    bullet3.draw();
-    bullet3.update();
-    bulletArray.push(bullet2);
-    bulletArray.push(bullet3);
-    bulletSound.currentTime = 0;
-    bulletSound.play();
-  },
-  rage_end() {
-    RAGE_GAGE = 0;
-    Israge = false;
-  },
+  // rage_mode(Israge) {
+  //   const bullet2 = new Bullet2();
+  //   const bullet3 = new Bullet3();
+  //   bullet2.draw();
+  //   bullet2.update();
+  //   bullet3.draw();
+  //   bullet3.update();
+  //   bulletArray.push(bullet2);
+  //   bulletArray.push(bullet3);
+  //   bulletSound.currentTime = 0;
+  //   bulletSound.play();
+  // }
 };
 
 /** 총알 클래스 정의 */
@@ -358,13 +354,18 @@ function animate() {
 
         if (RAGE_GAGE >= 100 * GAGE_BAR_WIDTH_COEFF) {
           // 게이지가 200보다 클 수 없게
+          let rage_timer = 0;
           RAGE_GAGE = 100 * GAGE_BAR_WIDTH_COEFF;
+          rage_timer++;
 
           // 레이지 모드 발동
-          Israge = true;
-          GAGE_bar.rage_mode();
+          // GAGE_bar.Israge = true;
+          // GAGE_bar.rage_mode();
 
-          setTimeout(GAGE_bar.rage_mode(), 2000);
+          // if (rage_timer % 2000 === 0) {
+          //   RAGE_GAGE = 0;
+          //   GAGE_bar.Israge = false;
+          // }
         }
       }
     });
@@ -480,6 +481,8 @@ function restartGame() {
   gameOver = false;
   bulletArray = [];
   enemyArray = [];
+  hp = 100;
+  RAGE_GAGE = 0;
   timer = 0;
   score = 0;
   scoreText.innerHTML = "현재점수: " + score;
