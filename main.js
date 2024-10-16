@@ -19,7 +19,7 @@ let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
 
 /** 오디오 객체 생성 및 설정 */
-/**TODO: 이동속도 사운드 넣기 */
+/**TODO: 이동 사운드 넣기 */
 const bgmSound = new Audio(); // 배경 음악
 bgmSound.src = "./sounds/bgm.mp3";
 const scoreSound = new Audio(); // 점수 획득 소리
@@ -109,10 +109,49 @@ const HP_bar = {
   },
 };
 
+/** 게이지바 정의 */
+const GAGE_BAR_WIDTH_COEFF = 2;
+let GAGE_BAR_WIDTH = 100 * GAGE_BAR_WIDTH_COEFF;
+let RAGE_GAGE = 0;
+let Israge = false;
+
+const GAGE_bar = {
+  x: 20,
+  y: 60,
+  height: 20,
+  draw() {
+    const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
+    my_gradient.addColorStop(0, "#FF8C00");
+    my_gradient.addColorStop(0.5, "#FF8C00");
+    my_gradient.addColorStop(1, "#FF8C00");
+    ctx.fillStyle = my_gradient;
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
+    ctx.fillRect(this.x, this.y, RAGE_GAGE, this.height);
+  },
+  rage_mode(Israge) {
+    const bullet2 = new Bullet2();
+    const bullet3 = new Bullet3();
+    bullet2.draw();
+    bullet2.update();
+    bullet3.draw();
+    bullet3.update();
+    bulletArray.push(bullet2);
+    bulletArray.push(bullet3);
+    bulletSound.currentTime = 0;
+    bulletSound.play();
+  },
+  rage_end() {
+    RAGE_GAGE = 0;
+    Israge = false;
+  },
+};
+
 /** 총알 클래스 정의 */
 
 class Bullet {
-  constructor(click_x, click_y) {
+  constructor() {
     this.x = rtan.x + rtan.width;
     this.y = rtan.y + rtan.height / 2;
     this.width = 30;
@@ -128,6 +167,48 @@ class Bullet {
     // this.x += this.dirX * this.speed;
     // this.y += this.dirY * this.speed;
     this.x += this.speed;
+  }
+}
+
+class Bullet2 {
+  constructor() {
+    this.x = rtan.x + rtan.width;
+    this.y = rtan.y + rtan.height / 2;
+    this.width = 30;
+    this.height = 30;
+    this.speed = 4;
+    // this.dirX = (click_x - this.x) / 70;
+    // this.dirY = (click_y - this.y) / 70;
+  }
+  draw() {
+    ctx.drawImage(bulletImage, this.x, this.y, this.width, this.height);
+  }
+  update() {
+    // this.x += this.dirX * this.speed;
+    // this.y += this.dirY * this.speed;
+    this.x += this.speed;
+    this.y += this.speed / 2;
+  }
+}
+
+class Bullet3 {
+  constructor() {
+    this.x = rtan.x + rtan.width;
+    this.y = rtan.y + rtan.height / 2;
+    this.width = 30;
+    this.height = 30;
+    this.speed = 4;
+    // this.dirX = (click_x - this.x) / 70;
+    // this.dirY = (click_y - this.y) / 70;
+  }
+  draw() {
+    ctx.drawImage(bulletImage, this.x, this.y, this.width, this.height);
+  }
+  update() {
+    // this.x += this.dirX * this.speed;
+    // this.y += this.dirY * this.speed;
+    this.x += this.speed;
+    this.y -= this.speed / 2;
   }
 }
 
@@ -272,6 +353,19 @@ function animate() {
         scoreSound.pause();
         scoreSound.currentTime = 0;
         scoreSound.play();
+
+        RAGE_GAGE += Math.floor(enemy.enemyScore);
+
+        if (RAGE_GAGE >= 100 * GAGE_BAR_WIDTH_COEFF) {
+          // 게이지가 200보다 클 수 없게
+          RAGE_GAGE = 100 * GAGE_BAR_WIDTH_COEFF;
+
+          // 레이지 모드 발동
+          Israge = true;
+          GAGE_bar.rage_mode();
+
+          setTimeout(GAGE_bar.rage_mode(), 2000);
+        }
       }
     });
   });
@@ -316,6 +410,7 @@ function animate() {
   /** 플레이어 그리기 */
   rtan.draw();
   HP_bar.draw();
+  GAGE_bar.draw();
 }
 
 // /** 키보드 이벤트 처리(위로 이동)) */
@@ -338,7 +433,7 @@ function animate() {
 /** TODO: 총알 발사 딜레이 주기 */
 window.addEventListener("keypress", function (e) {
   if (e.code === "Space") {
-    const bullet = new Bullet(rtan.x + rtan.width / 2, rtan.y + rtan.height / 2);
+    const bullet = new Bullet();
     bulletArray.push(bullet);
     bulletSound.currentTime = 0;
     bulletSound.play();
