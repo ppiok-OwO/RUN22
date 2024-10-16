@@ -18,8 +18,6 @@ let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
 let speed = 3;
-const originalSpeed = 3; // 이동 속도
-let stop = false;
 
 /** 오디오 객체 생성 및 설정 */
 /**TODO: 이동속도 사운드 넣기 */
@@ -90,6 +88,26 @@ const rtan = {
   },
 };
 
+/** HP바 정의 */
+let HP_BAR_WIDTH = 200;
+
+const HP_bar = {
+  x: 20,
+  y: 20,
+  height: 30,
+  draw() {
+    const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y+this.height); // gradient
+    my_gradient.addColorStop(0, "#990000");
+    my_gradient.addColorStop(0.5, "#CC0000");
+    my_gradient.addColorStop(1, "#FF0000");
+    ctx.fillStyle = my_gradient;
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(this.x, this.y, HP_BAR_WIDTH, this.height);
+    ctx.fillRect(this.x, this.y, HP_BAR_WIDTH, this.height);
+  },
+};
+
 /** 총알 클래스 정의 */
 
 class Bullet {
@@ -146,7 +164,6 @@ window.addEventListener("keydown", keyDownListener, false);
 function keyDownListener(event) {
   keyPresses[event.key] = true;
 }
-
 window.addEventListener("keyup", keyUpListener, false);
 function keyUpListener(event) {
   keyPresses[event.key] = false;
@@ -224,7 +241,7 @@ function animate() {
       if (!enemy.IsCrashed) {
         rtan.hp -= 10;
         enemy.IsCrashed = true;
-        hpText.innerHTML = rtan.hp;
+        hpText.innerHTML = "HP : "+rtan.hp;
         if (rtan.hp <= 0) {
           timer = 0;
           gameOver = true;
@@ -232,6 +249,7 @@ function animate() {
           bgmSound.pause();
           defeatSound.play();
         }
+        HP_BAR_WIDTH -= 20;
       }
     }
   });
@@ -295,6 +313,7 @@ function animate() {
   }
   /** 플레이어 그리기 */
   rtan.draw();
+  HP_bar.draw();
 }
 
 // /** 키보드 이벤트 처리(위로 이동)) */
@@ -314,10 +333,10 @@ function animate() {
 // });
 
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
-/** 총알 발사 딜레이 주기 */
+/** TODO: 총알 발사 딜레이 주기 */
 window.addEventListener("keypress", function (e) {
   if (e.code === "Space") {
-    const bullet = new Bullet(rtan.x + rtan.width / 2, rtan.y + rtan.height/2);
+    const bullet = new Bullet(rtan.x + rtan.width / 2, rtan.y + rtan.height / 2);
     bulletArray.push(bullet);
     bulletSound.currentTime = 0;
     bulletSound.play();
