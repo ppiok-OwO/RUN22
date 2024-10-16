@@ -433,10 +433,13 @@ window.addEventListener("keypress", function (e) {
 
       const bullet2 = new Bullet2();
       const bullet3 = new Bullet3();
+
       bullet2.draw();
       bullet2.update();
       bullet3.draw();
       bullet3.update();
+      if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
+
       bulletArray.push(bullet2);
       bulletArray.push(bullet3);
       bulletSound.currentTime = 0;
