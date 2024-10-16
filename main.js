@@ -99,17 +99,21 @@ const HP_bar = {
   max_width: maxHp * HP_BAR_WIDTH_COEFF,
   width: 100 * HP_BAR_WIDTH_COEFF,
   height: 30,
+  drawBG() {
+    ctx.fillStyle = "#D3D3D3";
+    ctx.fillRect(this.x, this.y, this.max_width, this.height);
+  },
   draw() {
     const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
-    my_gradient.addColorStop(0, "#990000");
-    my_gradient.addColorStop(0.5, "#CC0000");
-    my_gradient.addColorStop(1, "#FF0000");
+    my_gradient.addColorStop(0, "#800000");
+    my_gradient.addColorStop(0.5, "#FF0000");
+    my_gradient.addColorStop(1, "#FF7F50");
     ctx.fillStyle = my_gradient;
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
-    ctx.strokeRect(this.x, this.y, this.max_width, this.height);
     ctx.fillRect(this.x, this.y, this.width, this.height);
-  },
+    ctx.strokeRect(this.x, this.y, this.max_width, this.height);
+  }
 };
 
 /** 게이지바 정의 */
@@ -121,17 +125,20 @@ const GAGE_bar = {
   x: 20,
   y: 60,
   height: 20,
-  // Israge: false,
+  drawBG() {
+    ctx.fillStyle = "#D3D3D3";
+    ctx.fillRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
+  },
   draw() {
     const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
     my_gradient.addColorStop(0, "#FF8C00");
-    my_gradient.addColorStop(0.5, "#FF8C00");
-    my_gradient.addColorStop(1, "#FF8C00");
+    my_gradient.addColorStop(0.5, "#FFA500");
+    my_gradient.addColorStop(1, "#FFD700");
     ctx.fillStyle = my_gradient;
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
-    ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
     ctx.fillRect(this.x, this.y, RAGE_GAGE, this.height);
+    ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
   },
 };
 
@@ -391,7 +398,9 @@ function animate() {
   }
   /** 플레이어, HP바, 게이지바 그리기 */
   rtan.draw();
+  HP_bar.drawBG();
   HP_bar.draw();
+  GAGE_bar.drawBG();
   GAGE_bar.draw();
 }
 
