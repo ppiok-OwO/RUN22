@@ -13,11 +13,10 @@ let hpText = document.getElementById("hp");
 let score = 0; // 현재 점수
 
 /** 게임 변수 */
-let timer = 0; // 장애물 생성 시간
+let timer = 0; // 오브젝트 생성 시간
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let gameOver = false; // 게임 종료 여부
-let speed = 3;
 
 /** 오디오 객체 생성 및 설정 */
 /**TODO: 이동속도 사운드 넣기 */
@@ -64,6 +63,7 @@ const RTAN_WIDTH = 100;
 const RTAN_HEIGHT = 100;
 const RTAN_X = 10;
 const RTAN_Y = 400;
+let speed = 3; // 캐릭터 속도
 
 /** 플레이어 객체 정의 */
 const rtan = {
@@ -89,14 +89,15 @@ const rtan = {
 };
 
 /** HP바 정의 */
-let HP_BAR_WIDTH = 200;
+const HP_BAR_WIDTH_COEFF = 2;
+let HP_BAR_WIDTH = 100 * HP_BAR_WIDTH_COEFF;
 
 const HP_bar = {
   x: 20,
   y: 20,
   height: 30,
   draw() {
-    const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y+this.height); // gradient
+    const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
     my_gradient.addColorStop(0, "#990000");
     my_gradient.addColorStop(0.5, "#CC0000");
     my_gradient.addColorStop(1, "#FF0000");
@@ -111,31 +112,32 @@ const HP_bar = {
 /** 총알 클래스 정의 */
 
 class Bullet {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
+  constructor(click_x, click_y) {
+    this.x = rtan.x + rtan.width;
+    this.y = rtan.y + rtan.height / 2;
     this.width = 30;
     this.height = 30;
-    this.speed = 7;
+    this.speed = 4;
+    // this.dirX = (click_x - this.x) / 70;
+    // this.dirY = (click_y - this.y) / 70;
   }
-
   draw() {
     ctx.drawImage(bulletImage, this.x, this.y, this.width, this.height);
   }
-
   update() {
+    // this.x += this.dirX * this.speed;
+    // this.y += this.dirY * this.speed;
     this.x += this.speed;
   }
 }
 
 /** 적 클래스 정의 */
 const ENEMY_WIDTH = 70;
-const ENEMY_FREQUENCY = 90;
+const ENEMY_FREQUENCY = 20;
 const ENEMY_SPEED = 2;
 
 class Enemy {
   constructor() {
-    let IsCrashed = false;
     let ENEMY_HEIGHT = Math.random() * (100 - 30) + 30;
     let ENEMY_Y = Math.random() * (canvas.height - 50 - ENEMY_HEIGHT) + 30;
 
@@ -241,7 +243,7 @@ function animate() {
       if (!enemy.IsCrashed) {
         rtan.hp -= 10;
         enemy.IsCrashed = true;
-        hpText.innerHTML = "HP : "+rtan.hp;
+        hpText.innerHTML = "HP : " + rtan.hp;
         if (rtan.hp <= 0) {
           timer = 0;
           gameOver = true;
@@ -249,7 +251,7 @@ function animate() {
           bgmSound.pause();
           defeatSound.play();
         }
-        HP_BAR_WIDTH -= 20;
+        HP_BAR_WIDTH -= 10 * HP_BAR_WIDTH_COEFF;
       }
     }
   });
@@ -350,9 +352,10 @@ function collision(obj1, obj2) {
 
 /** 3-3 게임 시작 조건 설정하기 */
 canvas.addEventListener("click", function (e) {
+  // Element.getBoundingClientRect(): 어떤 요소의 화면상에서 위치와 크기를 구하는 메서드.
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const x = e.clientX - rect.left; // 캔버스 (0, 0)기준 클릭한 지점의 x좌표
+  const y = e.clientY - rect.top; // 캔버스 (0, 0) 기준 클릭한 지점의 y좌표
 
   // 게임 시작
   if (!gameStarted && x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
@@ -364,6 +367,17 @@ canvas.addEventListener("click", function (e) {
   if (gameOver && x >= canvas.width / 2 - 50 && x <= canvas.width / 2 + 50 && y >= canvas.height / 2 + 50 && y <= canvas.height / 2 + 100) {
     restartGame();
   }
+
+  //** 마우스로 총알 쏘기 */
+  // if (gameStarted && !gameOver) {
+  //   // 총알 객체 생성
+  //   const bullet = new Bullet(x, y);
+  //   bulletArray.push(bullet);
+  //   // 객체가 생성될 때마다 총 소리 초기화
+  //   bulletSound.currentTime = 0;
+  //   bulletSound.play();
+  //   return;
+  // }
 });
 
 /** 게임 재시작 함수 */
