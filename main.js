@@ -67,7 +67,7 @@ enemyImage.src = "./images/obstacle1.png";
 const bulletImage = new Image();
 bulletImage.src = "./images/obstacle3.png";
 // (10) HP 포션
-const HPpotion = new Image();
+const HPpotionImage = new Image();
 HPpotionImage.src = "./images/HpPotion.png";
 
 /** 1-1 플레이어 그리기 */
@@ -243,6 +243,7 @@ class HpPotion {
     this.height = 50;
     this.speed = 5;
     this.healingValue = 10;
+    this.IsConsumed = false;
   }
   draw() {
     ctx.drawImage(HPpotionImage, this.x, this.y, this.width, this.height);
@@ -360,23 +361,30 @@ function animate(frameTime) {
     hpPotionArray.push(hppotion);
     itemTimer = 0;
   }
-  hpPotionArray.forEach((hppotion) => {
+  hpPotionArray.forEach((hppotion, hppotionIndex) => {
     hppotion.draw();
     hppotion.update();
     if (hppotion.x < 0) {
-      hppotion.shift();
+      hpPotionArray.shift();
     }
     // HP 포션 객체들 충돌 검사
     if (collision(rtan, hppotion)) {
-      rtan.hp += hppotion.healingValue;
-      HP_bar.width += hppotion.healingValue * HP_BAR_WIDTH_COEFF;
-      hpText.innerHTML = "HP : " + rtan.hp;
-      getItemSound.pause();
-      getItemSound.currentTime = 0;
-      getItemSound.play();
-      if (hp >= maxHp * HP_BAR_WIDTH_COEFF) {
-        hp = maxHp;
-        HP_bar.width = maxHp * HP_BAR_WIDTH_COEFF;
+      if (!hppotion.IsConsumed) {
+        hppotion.IsConsumed = true;
+        hpPotionArray.splice(hppotionIndex, 1);
+        rtan.hp += hppotion.healingValue;
+        HP_bar.width += hppotion.healingValue * HP_BAR_WIDTH_COEFF;
+
+        if (rtan.hp > maxHp) {
+          rtan.hp = maxHp;
+          HP_bar.width = maxHp * HP_BAR_WIDTH_COEFF;
+          hpText.innerHTML = "HP : " + rtan.hp;
+        } else {
+          hpText.innerHTML = "HP : " + rtan.hp;
+          getItemSound.pause();
+          getItemSound.currentTime = 0;
+          getItemSound.play();
+        }
       }
     }
   });
