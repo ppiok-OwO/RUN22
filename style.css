@@ -36,4 +36,10 @@ body {
     text-align: center;
     margin-top: 20px;
     font-weight: bold;
-  }  
+  }
+  
+  #sound {
+    display: block;
+    text-align: center;
+    padding: 30px;
+  }

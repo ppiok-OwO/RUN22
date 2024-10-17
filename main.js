@@ -13,9 +13,13 @@ let hpText = document.getElementById("hp");
 let score = 0; // 현재 점수
 
 /** 게임 변수 */
-let timer = 0; // 오브젝트 생성 시간
+let lastFrameTime = 0; // 마지막 프레임 시간
+let deltaTime;
+let gameTimer = 0;
+let accumulatedTime = 0;
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
+let lastBulletTime = 0;
 let gameOver = false; // 게임 종료 여부
 const maxHp = 100;
 
@@ -81,7 +85,7 @@ const rtan = {
       ctx.drawImage(rtanCrashImage, this.x, this.y, this.width, this.height);
     } else {
       // 달리는 애니메이션 구현
-      if (timer % 60 > 30) {
+      if (gameTimer % 60 > 30) {
         ctx.drawImage(rtanAImage, this.x, this.y, this.width, this.height);
       } else {
         ctx.drawImage(rtanBImage, this.x, this.y, this.width, this.height);
@@ -100,7 +104,7 @@ const HP_bar = {
   width: 100 * HP_BAR_WIDTH_COEFF,
   height: 30,
   drawBG() {
-    ctx.fillStyle = "#D3D3D3";
+    ctx.fillStyle = "#F5F5F5";
     ctx.fillRect(this.x, this.y, this.max_width, this.height);
   },
   draw() {
@@ -113,7 +117,7 @@ const HP_bar = {
     ctx.lineWidth = 3;
     ctx.fillRect(this.x, this.y, this.width, this.height);
     ctx.strokeRect(this.x, this.y, this.max_width, this.height);
-  }
+  },
 };
 
 /** 게이지바 정의 */
@@ -126,7 +130,7 @@ const GAGE_bar = {
   y: 60,
   height: 20,
   drawBG() {
-    ctx.fillStyle = "#D3D3D3";
+    ctx.fillStyle = "#F5F5F5";
     ctx.fillRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
   },
   draw() {
@@ -195,28 +199,24 @@ class Bullet3 {
 }
 
 /** 적 클래스 정의 */
-const ENEMY_WIDTH = 70;
-const ENEMY_FREQUENCY = 20;
-const ENEMY_SPEED = 2;
+const ENEMY_FREQUENCY = 0.5;
 
 class Enemy {
   constructor() {
-    let ENEMY_HEIGHT = Math.random() * (100 - 30) + 30;
-    let ENEMY_Y = Math.random() * (canvas.height - 50 - ENEMY_HEIGHT) + 30;
+    let ENEMY_SIZE = Math.random() * (100 - 30) + 30;
+    let ENEMY_Y = Math.random() * (canvas.height - 50 - ENEMY_SIZE) + 30;
 
     this.x = canvas.width;
     this.y = ENEMY_Y;
-    this.width = 70;
-    this.height = ENEMY_HEIGHT;
-    this.speed = 100 / ENEMY_HEIGHT;
+    this.width = ENEMY_SIZE;
+    this.height = ENEMY_SIZE;
+    this.speed = 450 / ENEMY_SIZE;
     this.IsCrashed = false;
-    this.enemyScore = ENEMY_HEIGHT / 2;
+    this.enemyScore = ENEMY_SIZE / 2;
   }
-
   draw() {
     ctx.drawImage(enemyImage, this.x, this.y, this.width, this.height);
   }
-
   update() {
     this.x -= this.speed;
   }
@@ -267,7 +267,7 @@ let startImageLoaded = new Promise((resolve) => {
 Promise.all([bgImageLoaded, startImageLoaded]).then(drawStartScreen);
 
 /** 게임 애니메이션 함수 */
-function animate() {
+function animate(frameTime) {
   if (gameOver) {
     drawGameOverScreen();
     return;
@@ -275,30 +275,38 @@ function animate() {
 
   // 타이머 증가 및 다음 프레임 요청
   requestAnimationFrame(animate);
+
+  deltaTime = (frameTime - lastFrameTime) / 1000;
+  // frameTime - lastFrameTime : 1프레임당 걸리는 시간(밀리초)
+  // ((frameTime - lastFrameTime) / 1000): 밀리초를 초 단위로 변환
+  lastFrameTime = frameTime;
+  accumulatedTime += deltaTime;
+  gameTimer += deltaTime;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  timer++;
 
   /** 배경 이미지 */
   // 3-1 배경 이미지 그리기 (무한 스크롤 효과)
   backgroundImg(bgX);
   backgroundImg(bgX + canvas.width);
-  bgX -= BG_MOVING_SPEED;
+  bgX -= BG_MOVING_SPEED * deltaTime * 60;
   if (bgX < -canvas.width) bgX = 0;
   // 배경 음악 재생
   bgmSound.play();
   /** end of 배경 이미지 */
 
   /** 적 생성 및 업데이트 */
-  if (timer % ENEMY_FREQUENCY === 0) {
+  if (gameTimer >= ENEMY_FREQUENCY) {
+    // 0.5초마다 적 생성
     const enemy = new Enemy();
     enemyArray.push(enemy);
+    gameTimer = 0;
   }
 
   enemyArray.forEach((enemy) => {
     enemy.draw();
     enemy.update();
-    enemy.x -= ENEMY_SPEED;
-    if (enemy.x < -ENEMY_WIDTH) {
+    if (enemy.x < -enemy.ENEMY_SIZE) {
       enemyArray.shift(); // 장애물 제거
     }
     // 충돌 검사
@@ -309,7 +317,7 @@ function animate() {
         enemy.IsCrashed = true;
         hpText.innerHTML = "HP : " + rtan.hp;
         if (rtan.hp <= 0) {
-          timer = 0;
+          accumulatedTime = 0;
           gameOver = true;
           drawGameOverScreen();
           bgmSound.pause();
@@ -363,40 +371,67 @@ function animate() {
 
   // 상하좌우로 이동하기
   if (keyPresses.w || keyPresses.W) {
-    rtan.y -= speed;
+    rtan.y -= speed * deltaTime * 60;
     if (rtan.y < 20) rtan.y = 20;
   } else if (keyPresses.s || keyPresses.S) {
-    rtan.y += speed;
+    rtan.y += speed * deltaTime * 60;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   } else if (keyPresses.a || keyPresses.A) {
-    rtan.x -= speed;
+    rtan.x -= speed * deltaTime * 60;
     if (rtan.x < -rtan.width) rtan.x = 0;
   } else if (keyPresses.d || keyPresses.D) {
-    rtan.x += speed;
+    rtan.x += speed * deltaTime * 60;
     if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
   }
 
   // 대각선으로 이동하기
   if ((keyPresses.w || keyPresses.W) && (keyPresses.a || keyPresses.A)) {
-    rtan.x -= speed;
-    rtan.y -= speed;
+    rtan.x -= speed * deltaTime * 60;
+    rtan.y -= speed * deltaTime * 60;
     if (rtan.x < -rtan.width) rtan.x = 0;
     if (rtan.y < 20) rtan.y = 20;
   } else if ((keyPresses.w || keyPresses.W) && (keyPresses.d || keyPresses.D)) {
-    rtan.x += speed;
-    rtan.y -= speed;
+    rtan.x += speed * deltaTime * 60;
+    rtan.y -= speed * deltaTime * 60;
     if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
     if (rtan.y < 20) rtan.y = 20;
   } else if ((keyPresses.s || keyPresses.S) && (keyPresses.a || keyPresses.A)) {
-    rtan.x -= speed;
-    rtan.y += speed;
+    rtan.x -= speed * deltaTime * 60;
+    rtan.y += speed * deltaTime * 60;
     if (rtan.x < -rtan.width) rtan.x = 0;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   } else if ((keyPresses.s || keyPresses.S) && (keyPresses.d || keyPresses.D)) {
-    rtan.x += speed;
-    rtan.y += speed;
+    rtan.x += speed * deltaTime * 60;
+    rtan.y += speed * deltaTime * 60;
     if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
+  }
+
+  if (keyPresses[" "]) {
+    let currentTime = accumulatedTime;
+    if (currentTime - lastBulletTime >= 0.3) {
+      const bullet = new Bullet();
+      bulletArray.push(bullet);
+      bulletSound.currentTime = 0;
+      bulletSound.play();
+      lastBulletTime = currentTime;
+
+      if (rtan.Israge) {
+        const bullet2 = new Bullet2();
+        const bullet3 = new Bullet3();
+
+        bullet2.draw();
+        bullet2.update();
+        bullet3.draw();
+        bullet3.update();
+
+        bulletArray.push(bullet2);
+        bulletArray.push(bullet3);
+        bulletSound.currentTime = 0;
+        bulletSound.play();
+      }
+      if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
+    }
   }
   /** 플레이어, HP바, 게이지바 그리기 */
   rtan.draw();
@@ -424,35 +459,30 @@ function animate() {
 
 /** 키보드 이벤트 처리 (스페이스 바 발사) */
 /** TODO: 총알 발사 딜레이 주기 */
-window.addEventListener("keypress", function (e) {
-  if (gameStarted && e.code === "Space") {
-    const bullet = new Bullet();
+// window.addEventListener("keypress", function (e) {
+//   if (gameStarted && e.code === "Space") {
+//     const bullet = new Bullet();
+//     bulletArray.push(bullet);
+//     bulletSound.currentTime = 0;
+//     bulletSound.play();
 
-    if (rtan.Israge) {
-      bulletArray.push(bullet);
-      bulletSound.currentTime = 0;
-      bulletSound.play();
+//     if (rtan.Israge) {
+//       const bullet2 = new Bullet2();
+//       const bullet3 = new Bullet3();
 
-      const bullet2 = new Bullet2();
-      const bullet3 = new Bullet3();
+//       bullet2.draw();
+//       bullet2.update();
+//       bullet3.draw();
+//       bullet3.update();
 
-      bullet2.draw();
-      bullet2.update();
-      bullet3.draw();
-      bullet3.update();
-      if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
-
-      bulletArray.push(bullet2);
-      bulletArray.push(bullet3);
-      bulletSound.currentTime = 0;
-      bulletSound.play();
-    } else {
-      bulletArray.push(bullet);
-      bulletSound.currentTime = 0;
-      bulletSound.play();
-    }
-  }
-});
+//       bulletArray.push(bullet2);
+//       bulletArray.push(bullet3);
+//       bulletSound.currentTime = 0;
+//       bulletSound.play();
+//     }
+//     if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
+//   }
+// });
 
 /** 충돌 체크 함수 */
 function collision(obj1, obj2) {
@@ -469,7 +499,7 @@ canvas.addEventListener("click", function (e) {
   // 게임 시작
   if (!gameStarted && x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
     gameStarted = true;
-    animate();
+    requestAnimationFrame(animate);
   }
 
   // 게임 재시작 버튼 클릭
@@ -497,11 +527,11 @@ function restartGame() {
   rtan.hp = maxHp;
   HP_bar.width = 100 * HP_BAR_WIDTH_COEFF;
   RAGE_GAGE = 0;
-  timer = 0;
+  accumulatedTime = 0;
   score = 0;
   scoreText.innerHTML = "현재점수: " + score;
   hpText.innerHTML = "HP: " + maxHp;
   rtan.x = 10;
   rtan.y = 400;
-  animate();
+  requestAnimationFrame(animate);
 }
