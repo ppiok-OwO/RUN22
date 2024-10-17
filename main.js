@@ -16,17 +16,11 @@ let score = 0; // 현재 점수
 let lastFrameTime = 0; // 마지막 프레임 시간
 let deltaTime;
 let gameTimer = 0;
-<<<<<<< HEAD
 let itemTimer = 0;
 let accumulatedTime = 0;
 let bulletArray = []; // 총알 배열
 let enemyArray = []; // 적 배열
 let hpPotionArray = []; // HP포션 배열
-=======
-let accumulatedTime = 0;
-let bulletArray = []; // 총알 배열
-let enemyArray = []; // 적 배열
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
 let lastBulletTime = 0;
 let gameOver = false; // 게임 종료 여부
 const maxHp = 100;
@@ -39,15 +33,10 @@ const scoreSound = new Audio(); // 점수 획득 소리
 scoreSound.src = "./sounds/score.mp3";
 const defeatSound = new Audio(); // 게임 오버 소리
 defeatSound.src = "./sounds/defeat1.mp3";
-<<<<<<< HEAD
 const bulletSound = new Audio(); // 총소리
 bulletSound.src = "./sounds/PewPewSound.mp3";
 const getItemSound = new Audio(); // 아이템 획득 효과음
 getItemSound.src = "./sounds/Ascending7.mp3";
-=======
-const bulletSound = new Audio();
-bulletSound.src = "./sounds/laserGun.mp3";
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
 
 /** 이미지 객체 생성 및 설정 */
 // (1) 배경
@@ -77,12 +66,9 @@ enemyImage.src = "./images/obstacle1.png";
 // (9) 총알
 const bulletImage = new Image();
 bulletImage.src = "./images/obstacle3.png";
-<<<<<<< HEAD
 // (10) HP 포션
 const HPpotion = new Image();
 HPpotionImage.src = "./images/HpPotion.png";
-=======
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
 
 /** 1-1 플레이어 그리기 */
 const RTAN_WIDTH = 100;
@@ -245,7 +231,6 @@ class Enemy {
   }
 }
 
-<<<<<<< HEAD
 /** HP Potion 정의 */
 const HPPOTION_FREQUENCY = 5;
 class HpPotion {
@@ -267,8 +252,6 @@ class HpPotion {
   }
 }
 
-=======
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
 /** 키보드 입력 저장하기 */
 let keyPresses = {};
 window.addEventListener("keydown", keyDownListener, false);
@@ -326,10 +309,7 @@ function animate(frameTime) {
   lastFrameTime = frameTime; // ((frameTime - lastFrameTime) / 1000): 1프레임당 걸린 시간을 초 단위로 변환
   accumulatedTime += deltaTime; // 총 누적 시간
   gameTimer += deltaTime; // 오브젝트 생성용 타이머
-<<<<<<< HEAD
   itemTimer += deltaTime; // 아이템 생성용 타이머
-=======
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
 
   ctx.clearRect(0, 0, canvas.width, canvas.height); // 생성한 프레임 캔버스 크기만큼 지워주기
 
@@ -350,10 +330,6 @@ function animate(frameTime) {
     enemyArray.push(enemy);
     gameTimer = 0;
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
   enemyArray.forEach((enemy) => {
     enemy.draw();
     enemy.update();
@@ -378,7 +354,6 @@ function animate(frameTime) {
     }
   });
 
-<<<<<<< HEAD
   /** HP 포션 생성 및 업데이트 */
   if (itemTimer >= HPPOTION_FREQUENCY) {
     const hppotion = new HpPotion();
@@ -406,8 +381,6 @@ function animate(frameTime) {
     }
   });
 
-=======
->>>>>>> 2fc21c369d266b8dd1f6ae9fa3252a340a4f3659
   /** 발사체 그리기 및 업데이트 */
   bulletArray.forEach((bullet, bulletIndex) => {
     bullet.draw();
