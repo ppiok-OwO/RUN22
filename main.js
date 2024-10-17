@@ -13,18 +13,20 @@ let hpText = document.getElementById("hp");
 let score = 0; // 현재 점수
 
 /** 게임 변수 */
+let bulletArray = []; // 총알 배열
+let enemyArray = []; // 적 배열
+let hpPotionArray = []; // HP포션 배열
+let gameOver = false; // 게임 종료 여부
+const maxHp = 100;
+const maxRage = 100;
+
+/** 타이머 변수 */
 let lastFrameTime = 0; // 마지막 프레임 시간
 let deltaTime;
 let enemyTimer = 0;
 let itemTimer = 0;
+let bulletTimer = 0;
 let accumulatedTime = 0;
-let bulletArray = []; // 총알 배열
-let enemyArray = []; // 적 배열
-let hpPotionArray = []; // HP포션 배열
-let lastBulletTime = 0;
-let gameOver = false; // 게임 종료 여부
-const maxHp = 100;
-const maxRage = 100;
 
 /** 오디오 객체 생성 및 설정 */
 const bgmSound = new Audio(); // 배경 음악
@@ -37,6 +39,8 @@ const bulletSound = new Audio(); // 총소리
 bulletSound.src = "./sounds/PewPewSound.mp3";
 const getItemSound = new Audio(); // 아이템 획득 효과음
 getItemSound.src = "./sounds/Ascending7.mp3";
+const getDamagedSound = new Audio(); // 피격 음성
+getDamagedSound.src = "./sounds/ManOhaw.mp3";
 
 /** 이미지 객체 생성 및 설정 */
 // (1) 배경
@@ -309,8 +313,9 @@ function animate(frameTime) {
   deltaTime = (frameTime - lastFrameTime) / 1000; // frameTime - lastFrameTime : 1프레임당 걸리는 시간(밀리초)
   lastFrameTime = frameTime; // ((frameTime - lastFrameTime) / 1000): 1프레임당 걸린 시간을 초 단위로 변환
   accumulatedTime += deltaTime; // 총 누적 시간
-  enemyTimer += deltaTime; // 오브젝트 생성용 타이머
-  itemTimer += deltaTime; // 아이템 생성용 타이머
+  enemyTimer += deltaTime; // 적 생성 타이머
+  itemTimer += deltaTime; // 아이템 생성 타이머
+  bulletTimer += deltaTime; // 총알 생성 타이머
 
   ctx.clearRect(0, 0, canvas.width, canvas.height); // 생성한 프레임 캔버스 크기만큼 지워주기
 
@@ -344,6 +349,9 @@ function animate(frameTime) {
         HP_bar.width -= 10 * HP_BAR_WIDTH_COEFF;
         enemy.IsCrashed = true;
         hpText.innerHTML = "HP : " + rtan.hp;
+        getDamagedSound.pause();
+        getDamagedSound.currentTime = 0;
+        getDamagedSound.play();
         if (rtan.hp <= 0) {
           accumulatedTime = 0;
           gameOver = true;
@@ -448,37 +456,36 @@ function animate(frameTime) {
 
   // 대각선으로 이동하기
   if ((keyPresses.w || keyPresses.W) && (keyPresses.a || keyPresses.A)) {
-    rtan.x -= speed * deltaTime * 60;
-    rtan.y -= speed * deltaTime * 60;
+    rtan.x -= speed * Math.cos(Math.PI / 4) * deltaTime * 60;
+    rtan.y -= speed * Math.cos(Math.PI / 4) * deltaTime * 60;
     if (rtan.x < -rtan.width) rtan.x = 0;
     if (rtan.y < 20) rtan.y = 20;
   } else if ((keyPresses.w || keyPresses.W) && (keyPresses.d || keyPresses.D)) {
-    rtan.x += speed * deltaTime * 60;
-    rtan.y -= speed * deltaTime * 60;
+    rtan.x += speed * Math.cos(Math.PI / 4) * deltaTime * 60;
+    rtan.y -= speed * Math.cos(Math.PI / 4) * deltaTime * 60;
     if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
     if (rtan.y < 20) rtan.y = 20;
   } else if ((keyPresses.s || keyPresses.S) && (keyPresses.a || keyPresses.A)) {
-    rtan.x -= speed * deltaTime * 60;
-    rtan.y += speed * deltaTime * 60;
+    rtan.x -= speed * Math.cos(Math.PI / 4) * deltaTime * 60;
+    rtan.y += speed * Math.cos(Math.PI / 4) * deltaTime * 60;
     if (rtan.x < -rtan.width) rtan.x = 0;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   } else if ((keyPresses.s || keyPresses.S) && (keyPresses.d || keyPresses.D)) {
-    rtan.x += speed * deltaTime * 60;
-    rtan.y += speed * deltaTime * 60;
+    rtan.x += speed * Math.cos(Math.PI / 4) * deltaTime * 60;
+    rtan.y += speed * Math.cos(Math.PI / 4) * deltaTime * 60;
     if (rtan.x > canvas.width) rtan.x = canvas.width - rtan.width;
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
 
-  // 스페이스바(공백)를 누를 시 총알 발사
+  // 스페이스바(공백)를 누를 시 총알 발사(0.3초 딜레이)
   if (keyPresses[" "]) {
-    let currentTime = accumulatedTime; // 총 누적 시간을 현재 시간 변수에 할당
-    if (currentTime - lastBulletTime >= 0.3) {
-      // 현재시간-마지막 발사 시간이 0.3초 이상일 때만 총알 객체 생성하기(사격의 딜레이를 주기 위함)
+    if (bulletTimer >= 0.4) {
       const bullet = new Bullet();
+
       bulletArray.push(bullet);
       bulletSound.currentTime = 0;
       bulletSound.play();
-      lastBulletTime = currentTime;
+      bulletTimer = 0;
       // 폭주 모드일 때 총알 두 개 추가
       if (rtan.Israge) {
         const bullet2 = new Bullet2();
@@ -493,11 +500,13 @@ function animate(frameTime) {
         bulletArray.push(bullet3);
         bulletSound.currentTime = 0;
         bulletSound.play();
+        bulletTimer = 0;
+
+        if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
       }
-      // 총알이 캔버스 바깥으로 나가면 삭제하기
-      if (bullet.x > canvas.width || bullet.x < 0 || bullet.y > canvas.height || bullet.y < 0) bulletArray.splice(bulletIndex, 1);
     }
   }
+
   /** 플레이어, HP바, 게이지바 그리기 */
   rtan.draw();
   HP_bar.drawBG();
