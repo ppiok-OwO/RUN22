@@ -22,9 +22,9 @@ let enemyArray = []; // 적 배열
 let lastBulletTime = 0;
 let gameOver = false; // 게임 종료 여부
 const maxHp = 100;
+const maxRage = 100;
 
 /** 오디오 객체 생성 및 설정 */
-/**TODO: 이동 사운드 넣기 */
 const bgmSound = new Audio(); // 배경 음악
 bgmSound.src = "./sounds/bgm.mp3";
 const scoreSound = new Audio(); // 점수 획득 소리
@@ -85,7 +85,7 @@ const rtan = {
       ctx.drawImage(rtanCrashImage, this.x, this.y, this.width, this.height);
     } else {
       // 달리는 애니메이션 구현
-      if (gameTimer % 60 > 30) {
+      if (accumulatedTime % 2 > 1) {
         ctx.drawImage(rtanAImage, this.x, this.y, this.width, this.height);
       } else {
         ctx.drawImage(rtanBImage, this.x, this.y, this.width, this.height);
@@ -95,13 +95,14 @@ const rtan = {
 };
 
 /** HP바 정의 */
+// HP바 너비 계수
 const HP_BAR_WIDTH_COEFF = 2;
 
 const HP_bar = {
   x: 20,
   y: 20,
   max_width: maxHp * HP_BAR_WIDTH_COEFF,
-  width: 100 * HP_BAR_WIDTH_COEFF,
+  width: maxHp * HP_BAR_WIDTH_COEFF,
   height: 30,
   drawBG() {
     ctx.fillStyle = "#F5F5F5";
@@ -120,18 +121,21 @@ const HP_bar = {
   },
 };
 
-/** 게이지바 정의 */
+/** 폭주 게이지바 정의 */
+// 폭주 게이지바 너비 계수
 const GAGE_BAR_WIDTH_COEFF = 2;
-let GAGE_BAR_WIDTH = 100 * GAGE_BAR_WIDTH_COEFF;
+let GAGE_BAR_WIDTH = maxRage * GAGE_BAR_WIDTH_COEFF;
 let RAGE_GAGE = 0;
 
 const GAGE_bar = {
   x: 20,
   y: 60,
+  max_width: maxRage * GAGE_BAR_WIDTH_COEFF,
+  width: maxRage * GAGE_BAR_WIDTH_COEFF,
   height: 20,
   drawBG() {
     ctx.fillStyle = "#F5F5F5";
-    ctx.fillRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
+    ctx.fillRect(this.x, this.y, this.max_width, this.height);
   },
   draw() {
     const my_gradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height); // gradient
@@ -142,12 +146,11 @@ const GAGE_bar = {
     ctx.strokeStyle = "black";
     ctx.lineWidth = 3;
     ctx.fillRect(this.x, this.y, RAGE_GAGE, this.height);
-    ctx.strokeRect(this.x, this.y, 100 * GAGE_BAR_WIDTH_COEFF, this.height);
+    ctx.strokeRect(this.x, this.y, this.max_width, this.height);
   },
 };
 
 /** 총알 클래스 정의 */
-
 class Bullet {
   constructor() {
     this.x = rtan.x + rtan.width;
@@ -200,7 +203,6 @@ class Bullet3 {
 
 /** 적 클래스 정의 */
 const ENEMY_FREQUENCY = 0.5;
-
 class Enemy {
   constructor() {
     let ENEMY_SIZE = Math.random() * (100 - 30) + 30;
@@ -224,7 +226,6 @@ class Enemy {
 
 /** 키보드 입력 저장하기 */
 let keyPresses = {};
-
 window.addEventListener("keydown", keyDownListener, false);
 function keyDownListener(event) {
   keyPresses[event.key] = true;
@@ -274,16 +275,14 @@ function animate(frameTime) {
   }
 
   // 타이머 증가 및 다음 프레임 요청
-  requestAnimationFrame(animate);
+  requestAnimationFrame(animate); // 1프레임당 걸리는 시간을 animate 함수의 인자로 반환시켜 준다.
 
-  deltaTime = (frameTime - lastFrameTime) / 1000;
-  // frameTime - lastFrameTime : 1프레임당 걸리는 시간(밀리초)
-  // ((frameTime - lastFrameTime) / 1000): 밀리초를 초 단위로 변환
-  lastFrameTime = frameTime;
-  accumulatedTime += deltaTime;
-  gameTimer += deltaTime;
+  deltaTime = (frameTime - lastFrameTime) / 1000; // frameTime - lastFrameTime : 1프레임당 걸리는 시간(밀리초)
+  lastFrameTime = frameTime; // ((frameTime - lastFrameTime) / 1000): 1프레임당 걸린 시간을 초 단위로 변환
+  accumulatedTime += deltaTime; // 총 누적 시간
+  gameTimer += deltaTime; // 오브젝트 생성용 타이머
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // 생성한 프레임 캔버스 크기만큼 지워주기
 
   /** 배경 이미지 */
   // 3-1 배경 이미지 그리기 (무한 스크롤 효과)
@@ -354,13 +353,13 @@ function animate(frameTime) {
   });
 
   // 폭주 모드에 진입해도 괜찮은지 검사
-  if (RAGE_GAGE >= 100 * GAGE_BAR_WIDTH_COEFF && !rtan.Israge) {
+  if (RAGE_GAGE >= GAGE_bar.max_width && !rtan.Israge) {
     // 폭주 게이지가 최대치를 넘지 않게 조정
-    RAGE_GAGE = 100 * GAGE_BAR_WIDTH_COEFF;
+    RAGE_GAGE = GAGE_bar.max_width;
     rtan.Israge = true;
   }
 
-  // 폭주 모드에 진입하면 프레임당 게이지가 10씩 깎인다. 0이하가 되면 폭주가 끝난다.
+  // 폭주 모드에 진입하면 프레임당 게이지가 0.7씩 깎인다. 0이하가 되면 폭주가 끝난다.
   if (rtan.Israge) {
     RAGE_GAGE -= 0.7;
     if (RAGE_GAGE <= 0) {
@@ -407,15 +406,17 @@ function animate(frameTime) {
     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
   }
 
+  // 스페이스바(공백)를 누를 시 총알 발사
   if (keyPresses[" "]) {
-    let currentTime = accumulatedTime;
+    let currentTime = accumulatedTime; // 총 누적 시간을 현재 시간 변수에 할당
     if (currentTime - lastBulletTime >= 0.3) {
+      // 현재시간-마지막 발사 시간이 0.3초 이상일 때만 총알 객체 생성하기(사격의 딜레이를 주기 위함)
       const bullet = new Bullet();
       bulletArray.push(bullet);
       bulletSound.currentTime = 0;
       bulletSound.play();
       lastBulletTime = currentTime;
-
+      // 폭주 모드일 때 총알 두 개 추가
       if (rtan.Israge) {
         const bullet2 = new Bullet2();
         const bullet3 = new Bullet3();
@@ -430,7 +431,8 @@ function animate(frameTime) {
         bulletSound.currentTime = 0;
         bulletSound.play();
       }
-      if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
+      // 총알이 캔버스 바깥으로 나가면 삭제하기
+      if (bullet.x > canvas.width || bullet.x < 0 || bullet.y > canvas.height || bullet.y < 0) bulletArray.splice(bulletIndex, 1);
     }
   }
   /** 플레이어, HP바, 게이지바 그리기 */
@@ -440,49 +442,6 @@ function animate(frameTime) {
   GAGE_bar.drawBG();
   GAGE_bar.draw();
 }
-
-// /** 키보드 이벤트 처리(위로 이동)) */
-// document.addEventListener("keypress", function (e) {
-//   if (e.code === "KeyW") {
-//     rtan.y -= speed; // w 누르고 있으면 rtan의 y값 감소
-//     if (rtan.y < 20) rtan.y = 20;
-//   }
-// });
-
-// /** 키보드 이벤트 처리(아래로 이동) */
-// document.addEventListener("keypress", function (e) {
-//   if (e.code === "KeyS") {
-//     rtan.y += speed; // w 누르고 있으면 rtan의 y값 증가
-//     if (rtan.y > RTAN_Y) rtan.y = RTAN_Y;
-//   }
-// });
-
-/** 키보드 이벤트 처리 (스페이스 바 발사) */
-/** TODO: 총알 발사 딜레이 주기 */
-// window.addEventListener("keypress", function (e) {
-//   if (gameStarted && e.code === "Space") {
-//     const bullet = new Bullet();
-//     bulletArray.push(bullet);
-//     bulletSound.currentTime = 0;
-//     bulletSound.play();
-
-//     if (rtan.Israge) {
-//       const bullet2 = new Bullet2();
-//       const bullet3 = new Bullet3();
-
-//       bullet2.draw();
-//       bullet2.update();
-//       bullet3.draw();
-//       bullet3.update();
-
-//       bulletArray.push(bullet2);
-//       bulletArray.push(bullet3);
-//       bulletSound.currentTime = 0;
-//       bulletSound.play();
-//     }
-//     if (bullet.x > canvas.width) bulletArray.splice(bulletIndex, 1);
-//   }
-// });
 
 /** 충돌 체크 함수 */
 function collision(obj1, obj2) {
@@ -506,17 +465,6 @@ canvas.addEventListener("click", function (e) {
   if (gameOver && x >= canvas.width / 2 - 50 && x <= canvas.width / 2 + 50 && y >= canvas.height / 2 + 50 && y <= canvas.height / 2 + 100) {
     restartGame();
   }
-
-  //** 마우스로 총알 쏘기 */
-  // if (gameStarted && !gameOver) {
-  //   // 총알 객체 생성
-  //   const bullet = new Bullet(x, y);
-  //   bulletArray.push(bullet);
-  //   // 객체가 생성될 때마다 총 소리 초기화
-  //   bulletSound.currentTime = 0;
-  //   bulletSound.play();
-  //   return;
-  // }
 });
 
 /** 게임 재시작 함수 */
