@@ -15,7 +15,7 @@ let score = 0; // 현재 점수
 /** 게임 변수 */
 let lastFrameTime = 0; // 마지막 프레임 시간
 let deltaTime;
-let gameTimer = 0;
+let enemyTimer = 0;
 let itemTimer = 0;
 let accumulatedTime = 0;
 let bulletArray = []; // 총알 배열
@@ -309,7 +309,7 @@ function animate(frameTime) {
   deltaTime = (frameTime - lastFrameTime) / 1000; // frameTime - lastFrameTime : 1프레임당 걸리는 시간(밀리초)
   lastFrameTime = frameTime; // ((frameTime - lastFrameTime) / 1000): 1프레임당 걸린 시간을 초 단위로 변환
   accumulatedTime += deltaTime; // 총 누적 시간
-  gameTimer += deltaTime; // 오브젝트 생성용 타이머
+  enemyTimer += deltaTime; // 오브젝트 생성용 타이머
   itemTimer += deltaTime; // 아이템 생성용 타이머
 
   ctx.clearRect(0, 0, canvas.width, canvas.height); // 생성한 프레임 캔버스 크기만큼 지워주기
@@ -325,11 +325,11 @@ function animate(frameTime) {
   /** end of 배경 이미지 */
 
   /** 적 생성 및 업데이트 */
-  if (gameTimer >= ENEMY_FREQUENCY) {
+  if (enemyTimer >= ENEMY_FREQUENCY) {
     // 0.5초마다 적 생성
     const enemy = new Enemy();
     enemyArray.push(enemy);
-    gameTimer = 0;
+    enemyTimer = 0;
   }
   enemyArray.forEach((enemy) => {
     enemy.draw();
@@ -535,12 +535,14 @@ function restartGame() {
   gameOver = false;
   bulletArray = [];
   enemyArray = [];
+  hpPotionArray = [];
   rtan.hp = maxHp;
   HP_bar.width = 100 * HP_BAR_WIDTH_COEFF;
   RAGE_GAGE = 0;
   accumulatedTime = 0;
   lastFrameTime = 0;
-  gameTimer = 0;
+  enemyTimer = 0;
+  itemTimer = 0;
   score = 0;
   currentTime = 0;
   scoreText.innerHTML = "현재점수: " + score;
