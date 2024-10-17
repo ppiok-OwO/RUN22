@@ -528,7 +528,10 @@ function restartGame() {
   HP_bar.width = 100 * HP_BAR_WIDTH_COEFF;
   RAGE_GAGE = 0;
   accumulatedTime = 0;
+  lastFrameTime = 0;
+  gameTimer = 0;
   score = 0;
+  currentTime = 0;
   scoreText.innerHTML = "현재점수: " + score;
   hpText.innerHTML = "HP: " + maxHp;
   rtan.x = 10;
